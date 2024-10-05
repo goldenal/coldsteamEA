@@ -45,8 +45,8 @@ input int    MAPeriod  = 50;          // Period for Moving Average
 input int    MAShift   = 0; 
 double upperBand[], middleBand[], lowerBand[];
 // URL of the API endpoint
-input string apiUrlCall = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/CALL";  // Replace with actual API URL
-input string apiUrlput = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/PUT";
+input string apiUrlCall = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/CALL/1/instant";  // Replace with actual API URL
+input string apiUrlput = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/PUT/1/intant";
   string headers; // Additional headers if required
    char postData[]; // Data to be sent with the request
       // Variable to store the response
@@ -100,9 +100,9 @@ result,        // an array containing server response data
   resultHeader   // headers of server response
    );
    // Check for errors
-   if (err != 0)
+   if (err != 200)
      {
-      printf("Error sending request: %d", err);
+      printf("Response sending request: %d", err);
       //return;
      }else{
      Print("Called deriv");
@@ -141,6 +141,7 @@ void OnTick()
     Print("Current Seconds: ", secondsString);
     // Print the extracted seconds
     if(secondsString == "58"){
+     // postCall();
     
     if(activeSell == 0){
     
@@ -187,16 +188,12 @@ void OnTick()
    
     }
     
-    if((StringToInteger(secondsString) % 5) == 0){
-    
-    Print("g");
-      postCall();
-    }
+ 
     
     
     
      if(secondsString == "00"){
-     
+   
    
      //new candle
      
