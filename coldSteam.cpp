@@ -45,8 +45,18 @@ input int    MAPeriod  = 50;          // Period for Moving Average
 input int    MAShift   = 0; 
 double upperBand[], middleBand[], lowerBand[];
 // URL of the API endpoint
-input string apiUrlCall = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/CALL/1/instant";  // Replace with actual API URL
-input string apiUrlput = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/PUT/1/intant";
+input string apiUrlCall10 = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/CALL/1/watch";  // Replace with actual API URL
+input string apiUrlput10 = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/PUT/1/watch";
+input string apiUrlCall25 = "https://api-xig3blnaca-uc.a.run.app/trade/R_25/CALL/1/watch";  // Replace with actual API URL
+input string apiUrlput125 = "https://api-xig3blnaca-uc.a.run.app/trade/R_25/PUT/1/watch";
+input string apiUrlCall50 = "https://api-xig3blnaca-uc.a.run.app/trade/R_50/CALL/1/watch";  // Replace with actual API URL
+input string apiUrlput50 = "https://api-xig3blnaca-uc.a.run.app/trade/R_50/PUT/1/watch";
+input string apiUrlCall75 = "https://api-xig3blnaca-uc.a.run.app/trade/R_75/CALL/1/watch";  // Replace with actual API URL
+input string apiUrlput75 = "https://api-xig3blnaca-uc.a.run.app/trade/R_75/PUT/1/watch";
+input string apiUrlCall100 = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/CALL/1/watch";  // Replace with actual API URL
+input string apiUrlput100 = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/PUT/1/watch";
+input string apiUrlCall100s = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/CALL/1/watch";  // Replace with actual API URL
+input string apiUrlput100s = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/PUT/1/watch";
   string headers; // Additional headers if required
    char postData[]; // Data to be sent with the request
       // Variable to store the response
@@ -81,7 +91,9 @@ int OnInit()
   
   
   void postCall(){
+  string finalUrl = "";
     int err;
+    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/CALL/1/watch");
 
 
 string postData = "{\"startingAmount\":1}";  // JSON payload for the POST request
@@ -92,7 +104,7 @@ StringToCharArray(postData, postDataArray);
    
   err =   WebRequest(
       "POST",           // HTTP method
-    apiUrlCall,              // URL
+    finalUrl,              // URL
       "",          // headers 
       timeout,          // timeout
        postDataArray,          // the array of the HTTP message body
@@ -105,7 +117,43 @@ result,        // an array containing server response data
       printf("Response sending request: %d", err);
       //return;
      }else{
-     Print("Called deriv");
+     Print("Called deriv Call");
+     
+     }
+   
+ 
+  }
+  
+  
+    
+  void postPut(){
+ string finalUrl = "";
+    int err;
+    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/PUT/1/watch");
+
+
+string postData = "{\"startingAmount\":1}";  // JSON payload for the POST request
+char postDataArray[];
+StringToCharArray(postData, postDataArray);
+// Send POST request
+ 
+   
+  err =   WebRequest(
+      "POST",           // HTTP method
+    finalUrl,              // URL
+      "",          // headers 
+      timeout,          // timeout
+       postDataArray,          // the array of the HTTP message body
+result,        // an array containing server response data
+  resultHeader   // headers of server response
+   );
+   // Check for errors
+   if (err != 200)
+     {
+      printf("Response sending request: %d", err);
+      //return;
+     }else{
+     Print("Called deriv Put");
      
      }
    
@@ -126,10 +174,12 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
+
+
 void OnTick()
   {
  
-    
+  
   watchZone("check");
    // Get the time of the last closed bar (index 1)
    datetime currentBarTime = TimeCurrent();
@@ -138,10 +188,10 @@ void OnTick()
    
     // Extract only the seconds part from the time string
    string secondsString = StringSubstr(timeString, 6, 2); 
-    Print("Current Seconds: ", secondsString);
+ //   Print("Current Seconds: ", secondsString);
     // Print the extracted seconds
-    if(secondsString == "58"){
-     // postCall();
+    if(secondsString == "56"){
+    //  postCall();
     
     if(activeSell == 0){
     
@@ -150,6 +200,7 @@ void OnTick()
     
     activeSellZOne = 0; //reset zone
     Print("sell>>>>>>>>>>>>>");
+    postPut();
     
     activeSell = 1;
     
@@ -169,7 +220,7 @@ void OnTick()
      if(activebuyZone == 1 && isSellorBuy(0)== 1 && (lowerBand[1]>lowerBand[14])){
      
      activebuyZone = 0;// reset zone
-     
+     postCall();
     Print("buy>>>>>>>>>>>>>>>>");
     activebuy = 1;
     }
@@ -203,7 +254,7 @@ void OnTick()
     //count till 6
      if(activebuy == 1 || activeSell == 1){//track either buy or sell trade
     startCount++;
-    Print("tracking.....................");
+    Print("tracking.................",_Symbol,startCount);
     if(startCount == 7){
     //get trade result simulated
     if(activebuy == 1){
@@ -291,14 +342,50 @@ void OnTick()
    
      
      }
+     
+     
+      Print("active buyZone: ",activebuyZone, " =>", _Symbol);
+       Print("active sellZone: ",activeSellZOne, " =>", _Symbol);
+     
+     
       
-  //    Print("active buyZone:",activebuyZone);
-   //    Print("active sellZone:",activeSellZOne);
+     
    
   }
 //+------------------------------------------------------------------+
 
+string getTradeSymbol(){
+//symbols
+// Volatility 10 Index,  Volatility 10 (1s) Index,Volatility 25 Index, Volatility 25 (1s) Index,
+//Volatility 50 Index, Volatility 50 (1s) Index, Volatility 75 Index, Volatility 75 (1s) Index
 
+//Volatility 100 (1s) Index , Volatility 100 Index
+if(_Symbol== "Volatility 10 Index"){
+return "R_10";
+}
+else if(_Symbol == "Volatility 25 Index")
+       {
+        return "R_25";
+       }
+else if(_Symbol == "Volatility 50 Index")
+       {
+        return "R_50";
+       }
+       
+else if(_Symbol == "Volatility 75 Index")
+       {
+        return "R_75";
+       }
+else if(_Symbol == "Volatility 100 Index")
+       {
+        return "R_100";
+       }
+else
+  {
+   return "";
+  }
+   
+}
 
 
 
@@ -311,12 +398,12 @@ double openPricePrevious = iOpen(_Symbol, _Period, index);
    // Check if the previous candle was a buy (bullish) or sell (bearish)
    if (closePricePrevious > openPricePrevious)
      {
-      Print("Previous candle was a BUY (bullish) candle.");
+     // Print("Previous candle was a BUY (bullish) candle.");
       return 1;
      }
    else if (closePricePrevious < openPricePrevious)
      {
-      Print("Previous candle was a SELL (bearish) candle.");
+    //  Print("Previous candle was a SELL (bearish) candle.");
       return 0;
      }
    else
@@ -357,24 +444,24 @@ int watchZone(string type){
   // prevMAValue = iMA(_Symbol, _Period, MAPeriod, MAShift, MODE_SMA, PRICE_CLOSE, 1);
 
     // Get the Stochastic values for the current and previous candle
-   if (CopyBuffer(Stochastic_Handle, 0, 0, 2, k_value) < 0 ||
-       CopyBuffer(Stochastic_Handle, 1, 0, 2, d_value) < 0) 
+   if (CopyBuffer(Stochastic_Handle, 0, 0, 15, k_value) < 0 ||
+       CopyBuffer(Stochastic_Handle, 1, 0, 15, d_value) < 0) 
      {
       Print("Error getting Stochastic values: ", GetLastError());
       return 0;
      }
      
      if(type == "check"){
-      if(k_value[1] < oversold ){
+      if(k_value[1] < oversold || k_value[2] < oversold || k_value[3] < oversold ){
      activebuyZone = 1;
      
      }else{
-    // activebuyZone = 0;
+     activebuyZone = 0;
      }
-     if(k_value[1] > overbought){
+     if(k_value[1] > overbought  ||  k_value[2] > overbought || k_value[3] > overbought){
      activeSellZOne = 1;
      }else{
-   // activeSellZOne = 0;
+    activeSellZOne = 0;
      }
      
      return 0;
