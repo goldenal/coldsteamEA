@@ -74,15 +74,14 @@ int OnInit()
    ArraySetAsSeries(upperBand, true);
    ArraySetAsSeries(middleBand, true);
    ArraySetAsSeries(lowerBand, true);
-// Create Stochastic Oscillator handle
-   Stochastic_Handle = iStochastic(_Symbol, _Period, k_period, slowing, d_period, MODE_SMA, 0);
+
 
    // Check if the handle is created successfully
-   if (Stochastic_Handle == INVALID_HANDLE)
-     {
-      Print("Error creating Stochastic handle: ", GetLastError());
-      return(INIT_FAILED);
-     }
+ //  if (Stochastic_Handle == INVALID_HANDLE)
+  //   {
+  //    Print("Error creating Stochastic handle: ", GetLastError());
+  //    return(INIT_FAILED);
+   //  }
    return(INIT_SUCCEEDED);
   }
   
@@ -93,7 +92,7 @@ int OnInit()
   void postCall(){
   string finalUrl = "";
     int err;
-    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/CALL/1/watch");
+    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/CALL/1/instant");
 
 
 string postData = "{\"startingAmount\":1}";  // JSON payload for the POST request
@@ -129,7 +128,7 @@ result,        // an array containing server response data
   void postPut(){
  string finalUrl = "";
     int err;
-    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/PUT/1/watch");
+    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/PUT/1/instant");
 
 
 string postData = "{\"startingAmount\":1}";  // JSON payload for the POST request
@@ -193,7 +192,7 @@ void OnTick()
     if(secondsString == "56"){
     //  postCall();
     
-    if(activeSell == 0){
+    if(activebuy == 0 && activeSell == 0){
     
     if(activeSellZOne == 1 && isSellorBuy(0)== 0 && (upperBand[1]<upperBand[14])){
     
@@ -214,7 +213,7 @@ void OnTick()
    
     }
    
-    if(activebuy == 0){
+    if(activebuy == 0 && activeSell == 0){
     //active buy once
     
      if(activebuyZone == 1 && isSellorBuy(0)== 1 && (lowerBand[1]>lowerBand[14])){
@@ -242,6 +241,7 @@ void OnTick()
  
     
     
+   
     
      if(secondsString == "00"){
    
@@ -249,94 +249,32 @@ void OnTick()
      //new candle
      
      //take trade 
-    if(startCount <= 7){
+    if(startCount <= 6){
     
     //count till 6
      if(activebuy == 1 || activeSell == 1){//track either buy or sell trade
     startCount++;
-    Print("tracking.................",_Symbol,startCount);
-    if(startCount == 7){
-    //get trade result simulated
-    if(activebuy == 1){
-    //i.e it is a buy trade
-    //index 0 is the sixth candle to analyse  index 5 is the first candle;
-    for(int i=5;i>=0;i--)
-      {
-      if(isSellorBuy(i)== 1){
-      //trade won
-       wins++;
-       
-       if(wins <= 3){
-         binaryBalance  = binaryBalance + (0.95* stake);
-       }
-         stake =  1;
-    Print("current balance: ", binaryBalance);
-     
-      }else{
-      //trade lost
-      losses++;
-      binaryBalance = binaryBalance - stake;
-      if(losses == 1){
-      stake =  2;
-      }
-       Print("current balance: ", binaryBalance);
-      if(losses == 3){
-      
-      break;
-     
-      }
-      
-      }
-       
-      }
+    Print("tracking.................",_Symbol," ",startCount);
+  
+     Print("active buy: ",_Symbol," ",activebuy);
     
-    
-    
-    }else{
-    //i.e it is a sell trade
-   
-    //index 0 is the sixth candle to analyse  index 5 is the first candle;
-    for(int i=5;i>=0;i--)
-      {
-      if(isSellorBuy(i)== 0){
-      //trade won
-       wins++;
-       
-       if(wins <= 3){
-         binaryBalance  = binaryBalance + (0.95* stake);
-       }
-         stake =  1;
-    Print("current balance: ", binaryBalance);
-     
-      }else{
-      //trade lost
-      losses++;
-      binaryBalance = binaryBalance - stake;
-      if(losses == 1){
-      stake =  2;
-      }
-       Print("current balance: ", binaryBalance);
-      if(losses == 3){
-      
-      break;
-     
-      }
-      
-      }
-       
-      }
-    
-    }
-    
-    }
-    
+    Print("active sell: ",_Symbol," ",activeSell);
+  //---
+  
     }
     
     }
     else{
     //end trade and reset active buy
+        Print("reset ,.<<<<<<<<<<<<>>>>>>>>>>>>>>>>>11111111111 ");
     activebuy = 0;
     startCount = 0;
+     activeSell = 0;
+     
+       
+     Print("active buy: ",_Symbol," ",activebuy);
+    
+    Print("active sell: ",_Symbol," ",activeSell);
     
     }
    
@@ -344,8 +282,8 @@ void OnTick()
      }
      
      
-      Print("active buyZone: ",activebuyZone, " =>", _Symbol);
-       Print("active sellZone: ",activeSellZOne, " =>", _Symbol);
+    
+       
      
      
       
@@ -416,6 +354,8 @@ double openPricePrevious = iOpen(_Symbol, _Period, index);
 
 
 int watchZone(string type){
+// Create Stochastic Oscillator handle
+   Stochastic_Handle = iStochastic(_Symbol, _Period, k_period, slowing, d_period, MODE_SMA, 0);
 
  // Copy Bollinger Bands data
    if (CopyBuffer(iBands(_Symbol, Timeframe, BandsPeriod, 0, BandsDeviation, PRICE_CLOSE ), 1, 0, 15, upperBand) <= 0)
@@ -444,21 +384,22 @@ int watchZone(string type){
   // prevMAValue = iMA(_Symbol, _Period, MAPeriod, MAShift, MODE_SMA, PRICE_CLOSE, 1);
 
     // Get the Stochastic values for the current and previous candle
-   if (CopyBuffer(Stochastic_Handle, 0, 0, 15, k_value) < 0 ||
-       CopyBuffer(Stochastic_Handle, 1, 0, 15, d_value) < 0) 
+   if (CopyBuffer(Stochastic_Handle, 0, 0, 5, k_value) < 0 ||
+       CopyBuffer(Stochastic_Handle, 1, 0, 5, d_value) < 0) 
      {
       Print("Error getting Stochastic values: ", GetLastError());
       return 0;
      }
+     //Print("stochastic:", k_value[4]);
      
      if(type == "check"){
-      if(k_value[1] < oversold || k_value[2] < oversold || k_value[3] < oversold ){
+      if(k_value[4] < oversold || k_value[3] < oversold || k_value[2] < oversold ){
      activebuyZone = 1;
      
      }else{
      activebuyZone = 0;
      }
-     if(k_value[1] > overbought  ||  k_value[2] > overbought || k_value[3] > overbought){
+     if(k_value[4] > overbought  ||  k_value[3] > overbought || k_value[2] > overbought){
      activeSellZOne = 1;
      }else{
     activeSellZOne = 0;
