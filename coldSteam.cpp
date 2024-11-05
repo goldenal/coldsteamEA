@@ -177,7 +177,7 @@ void OnDeinit(const int reason)
 
 void OnTick()
   {
- 
+
   
   watchZone("check");
    // Get the time of the last closed bar (index 1)
@@ -215,6 +215,7 @@ void OnTick()
    
     if(activebuy == 0 && activeSell == 0){
     //active buy once
+    
     
      if(activebuyZone == 1 && isSellorBuy(0)== 1 && (lowerBand[1]>lowerBand[14])){
      
