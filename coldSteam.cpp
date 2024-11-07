@@ -58,7 +58,7 @@ input string apiUrlput100 = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/PUT
 input string apiUrlCall100s = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/CALL/1/watch";  // Replace with actual API URL
 input string apiUrlput100s = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/PUT/1/watch";
   string headers; // Additional headers if required
-   char postData[]; // Data to be sent with the request
+   // Data to be sent with the request
       // Variable to store the response
    char result[];     // Buffer for the returned data
    string resultHeader;  // HTTP status code returned by the API
@@ -90,6 +90,7 @@ int OnInit()
   
   
   void postCall(){
+     PlaySound("alert.wav");
   string finalUrl = "";
     int err;
     StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/CALL/1/instant");
@@ -126,6 +127,7 @@ result,        // an array containing server response data
   
     
   void postPut(){
+     PlaySound("alert.wav");
  string finalUrl = "";
     int err;
     StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/PUT/1/instant");
@@ -194,7 +196,7 @@ void OnTick()
     
     if(activebuy == 0 && activeSell == 0){
     
-    if(activeSellZOne == 1 && isSellorBuy(0)== 0 && (upperBand[1]<upperBand[14])){
+    if(activeSellZOne == 1 && isSellorBuy(0)== 0 && (upperBand[1]<upperBand[14])&& IsPriceBelowMiddleBand(middleBand[1]) == false ){
     
     
     activeSellZOne = 0; //reset zone
@@ -217,7 +219,7 @@ void OnTick()
     //active buy once
     
     
-     if(activebuyZone == 1 && isSellorBuy(0)== 1 && (lowerBand[1]>lowerBand[14])){
+     if(activebuyZone == 1 && isSellorBuy(0)== 1 && (lowerBand[1]>lowerBand[14]) && IsPriceBelowMiddleBand(middleBand[1]) == true){
      
      activebuyZone = 0;// reset zone
      postCall();
@@ -327,6 +329,13 @@ else
 }
 
 
+
+bool IsPriceBelowMiddleBand(double mBand) {
+   
+   double currentPrice = iClose(_Symbol, _Period, 0);
+   
+   return currentPrice < mBand;
+}
 
 
 
