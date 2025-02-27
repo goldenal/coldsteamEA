@@ -27,7 +27,7 @@ input double oversold   = 20; // Oversold level
 // Bollinger Bands Parameters
 input int BandsPeriod = 25;             // Period for Bollinger Bands (20 is common)
 input double BandsDeviation = 2.0;      // Standard deviation (default = 2.0)
-input ENUM_TIMEFRAMES Timeframe = PERIOD_M1;
+input ENUM_TIMEFRAMES Timeframe = PERIOD_M5;
 int Stochastic_Handle;  // Handle for the stochastic indicator
 int activebuyZone = 0;
 int activeSellZOne = 0;
@@ -44,19 +44,8 @@ double prevMAValue;
 input int    MAPeriod  = 50;          // Period for Moving Average
 input int    MAShift   = 0; 
 double upperBand[], middleBand[], lowerBand[];
-// URL of the API endpoint
-input string apiUrlCall10 = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/CALL/1/watch";  // Replace with actual API URL
-input string apiUrlput10 = "https://api-xig3blnaca-uc.a.run.app/trade/R_10/PUT/1/watch";
-input string apiUrlCall25 = "https://api-xig3blnaca-uc.a.run.app/trade/R_25/CALL/1/watch";  // Replace with actual API URL
-input string apiUrlput125 = "https://api-xig3blnaca-uc.a.run.app/trade/R_25/PUT/1/watch";
-input string apiUrlCall50 = "https://api-xig3blnaca-uc.a.run.app/trade/R_50/CALL/1/watch";  // Replace with actual API URL
-input string apiUrlput50 = "https://api-xig3blnaca-uc.a.run.app/trade/R_50/PUT/1/watch";
-input string apiUrlCall75 = "https://api-xig3blnaca-uc.a.run.app/trade/R_75/CALL/1/watch";  // Replace with actual API URL
-input string apiUrlput75 = "https://api-xig3blnaca-uc.a.run.app/trade/R_75/PUT/1/watch";
-input string apiUrlCall100 = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/CALL/1/watch";  // Replace with actual API URL
-input string apiUrlput100 = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/PUT/1/watch";
-input string apiUrlCall100s = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/CALL/1/watch";  // Replace with actual API URL
-input string apiUrlput100s = "https://api-xig3blnaca-uc.a.run.app/trade/R_100/PUT/1/watch";
+
+
   string headers; // Additional headers if required
    // Data to be sent with the request
       // Variable to store the response
@@ -93,7 +82,7 @@ int OnInit()
      PlaySound("alert.wav");
   string finalUrl = "";
     int err;
-    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/CALL/1/instant");
+    StringConcatenate(finalUrl,"https://coldsteam2-496456317264.us-central1.run.app/trade/",getTradeSymbol(),"/CALL/1/instant");
 
 
 string postData = "{\"startingAmount\":1}";  // JSON payload for the POST request
@@ -130,7 +119,7 @@ result,        // an array containing server response data
      PlaySound("alert.wav");
  string finalUrl = "";
     int err;
-    StringConcatenate(finalUrl,"https://api-xig3blnaca-uc.a.run.app/trade/",getTradeSymbol(),"/PUT/1/instant");
+    StringConcatenate(finalUrl,"https://coldsteam2-496456317264.us-central1.run.app/trade/",getTradeSymbol(),"/PUT/1/instant");
 
 
 string postData = "{\"startingAmount\":1}";  // JSON payload for the POST request
@@ -179,7 +168,13 @@ void OnDeinit(const int reason)
 
 void OnTick()
   {
+  
+ 
 
+  //if(_Symbol== "Volatility 10 Index"){
+ // Print("active buy zone: ", activebuyZone);
+ //  Print("active sell zone: ", activeSellZOne);
+//}
   
   watchZone("check");
    // Get the time of the last closed bar (index 1)
@@ -189,9 +184,13 @@ void OnTick()
    
     // Extract only the seconds part from the time string
    string secondsString = StringSubstr(timeString, 6, 2); 
- //   Print("Current Seconds: ", secondsString);
-    // Print the extracted seconds
-    if(secondsString == "56"){
+   string minuteStr = StringSubstr(timeString,3,2);
+   int minutes = StringToInteger(minuteStr);
+   int rem = MathMod(minutes + 1,5);
+   
+   
+
+    if(secondsString == "56" && rem == 0 ){
     //  postCall();
     
     if(activebuy == 0 && activeSell == 0){
@@ -246,8 +245,10 @@ void OnTick()
     
    
     
-     if(secondsString == "00"){
-   
+     if(secondsString == "56"  && rem == 0){
+
+     
+  // postPut();
    
      //new candle
      
@@ -332,7 +333,7 @@ else
 
 bool IsPriceBelowMiddleBand(double mBand) {
    
-   double currentPrice = iClose(_Symbol, _Period, 0);
+   double currentPrice = iClose(_Symbol, _Period, 0);   
    
    return currentPrice < mBand;
 }
@@ -368,17 +369,17 @@ int watchZone(string type){
    Stochastic_Handle = iStochastic(_Symbol, _Period, k_period, slowing, d_period, MODE_SMA, 0);
 
  // Copy Bollinger Bands data
-   if (CopyBuffer(iBands(_Symbol, Timeframe, BandsPeriod, 0, BandsDeviation, PRICE_CLOSE ), 1, 0, 15, upperBand) <= 0)
+   if (CopyBuffer(iBands(_Symbol, _Period, BandsPeriod, 0, BandsDeviation, PRICE_CLOSE ), 1, 0, 15, upperBand) <= 0)
      {
       Print("Error retrieving upper Bollinger Band data");
       return 0;
      }
-   if (CopyBuffer(iBands(_Symbol, Timeframe, BandsPeriod, 0, BandsDeviation, PRICE_CLOSE ), 0, 0, 15, middleBand) <= 0)
+   if (CopyBuffer(iBands(_Symbol, _Period, BandsPeriod, 0, BandsDeviation, PRICE_CLOSE ), 0, 0, 15, middleBand) <= 0)
      {
       Print("Error retrieving middle Bollinger Band data");
       return 0;
      }
-   if (CopyBuffer(iBands(_Symbol, Timeframe, BandsPeriod, 0, BandsDeviation, PRICE_CLOSE), 2, 0, 15, lowerBand) <= 0)
+   if (CopyBuffer(iBands(_Symbol, _Period, BandsPeriod, 0, BandsDeviation, PRICE_CLOSE), 2, 0, 15, lowerBand) <= 0)
      {
       Print("Error retrieving lower Bollinger Band data");
       return 0;
